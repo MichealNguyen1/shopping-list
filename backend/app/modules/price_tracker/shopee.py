@@ -81,7 +81,8 @@ async def fetch_product(shop_id: int, item_id: int) -> ShopeeProduct:
     # Hết hạn sau ~30 ngày → cần update lại trong Vercel env vars
     headers = {
         **_HEADERS,
-        "Cookie": settings.shopee_cookie,
+        # strip() loại bỏ \n, \r, space thừa ở đầu/cuối — hay bị dính khi paste vào Vercel
+        "Cookie": settings.shopee_cookie.strip(),
     }
 
     params = {
