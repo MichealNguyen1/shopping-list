@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import connect_db, disconnect_db
 from app.modules.shopping_list.router import router as shopping_router
+from app.modules.price_tracker.router import router as price_tracker_router
 
 
 @asynccontextmanager
@@ -60,6 +61,7 @@ app.add_middleware(
 # Đăng ký router với prefix /api
 # Tất cả endpoint trong shopping_router sẽ có path: /api/items/...
 app.include_router(shopping_router, prefix="/api")
+app.include_router(price_tracker_router, prefix="/api")
 
 
 @app.get("/", tags=["health"])

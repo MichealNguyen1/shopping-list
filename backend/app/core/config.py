@@ -22,9 +22,16 @@ class Settings(BaseSettings):
     mongodb_db: str = "shopping_list"
 
     # CORS origin — URL của frontend được phép gọi API
-    # Ví dụ: https://my-app.vercel.app
-    # Dùng "*" khi dev local cho tiện, production phải set cụ thể
     frontend_url: str = "*"
+
+    # Telegram Bot — lấy từ @BotFather
+    # Để trống nếu chưa setup, app vẫn chạy bình thường
+    telegram_bot_token: str = ""
+    telegram_chat_id: str = ""
+
+    # Cron secret — bảo vệ endpoint /cron/check-prices
+    # Tạo bằng: python -c "import secrets; print(secrets.token_hex(32))"
+    cron_secret: str = "change-me-in-production"
 
     class Config:
         # Pydantic sẽ đọc file .env ở thư mục chạy uvicorn
