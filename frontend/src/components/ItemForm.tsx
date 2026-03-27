@@ -1,9 +1,8 @@
-// ItemForm.tsx — Form thêm item mới
+// ItemForm.tsx — Form thêm item mới vào danh sách đang xem xét
 
 import { useState } from "react";
 import type { CreateItemPayload } from "../types/item";
 
-// Danh mục mặc định từ sheet gốc
 const CATEGORIES = [
   "1. Đồ cho bé ăn",
   "2. Sản phẩm vệ sinh",
@@ -23,8 +22,6 @@ export function ItemForm({ onAdd }: Props) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [shopeeUrl, setShopeeUrl] = useState("");
-  const [quantity, setQuantity] = useState(1);
-  const [price, setPrice] = useState(0);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,11 +37,9 @@ export function ItemForm({ onAdd }: Props) {
         name: name.trim(),
         category,
         shopee_url: shopeeUrl.trim(),
-        quantity,
-        price,
         note: note.trim(),
       });
-      setName(""); setShopeeUrl(""); setQuantity(1); setPrice(0); setNote("");
+      setName(""); setShopeeUrl(""); setNote("");
       setExpanded(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
@@ -55,10 +50,9 @@ export function ItemForm({ onAdd }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="item-form">
-      <h2>Thêm sản phẩm mới</h2>
+      <h2>Thêm sản phẩm đang xem xét</h2>
       {error && <p className="error">{error}</p>}
 
-      {/* Row chính: phân loại + tên + link Shopee */}
       <div className="form-row">
         <select value={category} onChange={(e) => setCategory(e.target.value)}
           className="input-category">
@@ -72,25 +66,20 @@ export function ItemForm({ onAdd }: Props) {
           onChange={(e) => setShopeeUrl(e.target.value)} className="input-url" />
       </div>
 
-      {/* Toggle thêm chi tiết */}
       <button type="button" className="btn-toggle"
         onClick={() => setExpanded(!expanded)}>
-        {expanded ? "▲ Ẩn" : "▼ Thêm SL, giá, ghi chú"}
+        {expanded ? "▲ Ẩn" : "▼ Thêm ghi chú"}
       </button>
 
       {expanded && (
         <div className="form-row">
-          <input type="number" placeholder="Số lượng" value={quantity} min={1}
-            onChange={(e) => setQuantity(Number(e.target.value))} className="input-sm" />
-          <input type="number" placeholder="Giá (VNĐ)" value={price} min={0}
-            onChange={(e) => setPrice(Number(e.target.value))} />
           <input type="text" placeholder="Ghi chú" value={note}
-            onChange={(e) => setNote(e.target.value)} />
+            onChange={(e) => setNote(e.target.value)} style={{ flex: 1 }} />
         </div>
       )}
 
       <button type="submit" disabled={loading || !name.trim()} className="btn-submit">
-        {loading ? "Đang thêm..." : "+ Thêm vào danh sách"}
+        {loading ? "Đang thêm..." : "+ Thêm vào danh sách xem xét"}
       </button>
     </form>
   );

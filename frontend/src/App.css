@@ -135,24 +135,69 @@ body {
 .shopping-table tbody tr:hover { background: #fafbff; }
 
 /* Column widths */
-.col-check { width: 36px; text-align: center; }
 .col-category {
   width: 140px; font-weight: 600; color: #2563eb;
   background: #f0f5ff; vertical-align: middle !important;
   border-right: 2px solid #dbeafe;
 }
 .col-name { min-width: 180px; }
-.col-qty { width: 50px; text-align: center; }
-.col-price { width: 110px; text-align: right; }
-.col-total { width: 110px; text-align: right; font-weight: 600; color: #059669; }
-.col-note { min-width: 120px; color: #888; font-style: italic; }
+.col-note { min-width: 140px; color: #888; font-style: italic; }
 .col-link { width: 80px; text-align: center; }
+.col-status { width: 120px; text-align: center; }
+.col-actions { width: 200px; }
 .col-action { width: 36px; text-align: center; }
-.item-brand { color: #999; font-size: 12px; }
 
-/* Purchased row */
-.row-purchased td { opacity: 0.45; }
+/* Status badge */
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Row tinting by status */
+.row-purchased td { opacity: 0.5; }
 .row-purchased .item-name { text-decoration: line-through; }
+.row-skipped td { opacity: 0.4; }
+.row-skipped .item-name { text-decoration: line-through; color: #9ca3af; }
+.row-will_buy { background: #eff6ff !important; }
+
+/* Action buttons */
+.col-actions { display: table-cell; }
+.action-btn {
+  font-size: 11px; font-weight: 600; padding: 4px 10px;
+  border: none; border-radius: 4px; cursor: pointer;
+  margin-right: 4px; margin-bottom: 2px;
+  white-space: nowrap;
+}
+.action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.action-btn.will-buy { background: #dbeafe; color: #1d4ed8; }
+.action-btn.will-buy:hover:not(:disabled) { background: #bfdbfe; }
+.action-btn.purchased { background: #d1fae5; color: #065f46; }
+.action-btn.purchased:hover:not(:disabled) { background: #a7f3d0; }
+.action-btn.skip { background: #f3f4f6; color: #6b7280; }
+.action-btn.skip:hover:not(:disabled) { background: #e5e7eb; }
+.action-btn.reset { background: #fef3c7; color: #92400e; }
+.action-btn.reset:hover:not(:disabled) { background: #fde68a; }
+
+/* Skip reason inline input */
+.skip-input-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.skip-input-row input {
+  flex: 1; min-width: 120px;
+  padding: 4px 8px; border: 1.5px solid #e0e0e0;
+  border-radius: 4px; font-size: 12px; outline: none;
+}
+.skip-input-row input:focus { border-color: #6b7280; }
+.btn-confirm-skip {
+  padding: 4px 10px; font-size: 11px; font-weight: 600;
+  background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer;
+}
+.btn-confirm-skip:hover:not(:disabled) { background: #4b5563; }
+.btn-cancel-skip {
+  padding: 4px 10px; font-size: 11px;
+  background: none; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer; color: #6b7280;
+}
 
 /* Shopee link */
 .shopee-link {
@@ -177,13 +222,6 @@ body {
 }
 .delete-btn:hover { color: #ef4444; }
 
-/* Footer tổng */
-.total-row td { background: #f8faff; font-weight: 600; border-top: 2px solid #e8edf5; }
-.total-label { text-align: right; color: #555; }
-.total-value { text-align: right; color: #059669; font-size: 14px; }
-
-/* Checkbox */
-input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #2563eb; }
 
 /* Utilities */
 .center {

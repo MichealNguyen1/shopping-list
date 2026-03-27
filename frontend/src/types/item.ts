@@ -1,30 +1,24 @@
 // types/item.ts — TypeScript type definitions
-//
-// Định nghĩa types ở 1 chỗ, dùng ở nhiều nơi.
-// Khi API thay đổi, chỉ cần sửa ở đây → TypeScript compiler báo lỗi ở mọi nơi dùng sai.
 
-// Shape của item nhận từ API response
-// Phải match với ItemResponse trong backend/schemas.py
+// 4 trạng thái quyết định của mỗi item — phải match với backend ItemStatus
+export type ItemStatus = "considering" | "will_buy" | "purchased" | "skipped";
+
+// Shape của item nhận từ API response — match với ItemResponse trong backend/schemas.py
 export interface ShoppingItem {
   id: string;
   name: string;
   category: string;
-  brand: string;
-  quantity: number;
-  price: number;
-  is_purchased: boolean;
-  shopee_url?: string;
-  note?: string;
+  shopee_url: string;
+  note: string;
+  status: ItemStatus;
+  skip_reason: string;
   created_at: string;
 }
 
-// Data gửi lên khi tạo item mới — phải match với ItemCreate trong backend
+// Data gửi lên khi tạo item mới — match với ItemCreate trong backend
 export interface CreateItemPayload {
   name: string;
   category?: string;
-  brand?: string;
-  quantity?: number;
-  price?: number;
   shopee_url?: string;
   note?: string;
 }
@@ -32,12 +26,11 @@ export interface CreateItemPayload {
 // Data gửi lên khi update — tất cả optional vì PATCH chỉ update field có giá trị
 export interface UpdateItemPayload {
   name?: string;
-  brand?: string;
-  quantity?: number;
-  price?: number;
-  is_purchased?: boolean;
+  category?: string;
   shopee_url?: string;
   note?: string;
+  status?: ItemStatus;
+  skip_reason?: string;
 }
 
 // Shape của GET /items response
