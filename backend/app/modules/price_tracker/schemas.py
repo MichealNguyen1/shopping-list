@@ -16,12 +16,17 @@ class TrackProductRequest(BaseModel):
     @field_validator("shopee_url")
     @classmethod
     def validate_shopee_url(cls, v: str) -> str:
-        """Kiểm tra URL đúng format Shopee và extract được shop_id + item_id."""
-        # Shopee URL format: https://shopee.vn/anything-i.{shop_id}.{item_id}
-        pattern = r"shopee\.vn/.+-i\.(\d+)\.(\d+)"
-        if not re.search(pattern, v):
+        """Kiểm tra URL đúng format Shopee. Hỗ trợ 2 format:
+        - https://shopee.vn/ten-san-pham-i.{shop_id}.{item_id}
+        - https://shopee.vn/product/{shop_id}/{item_id}
+        """
+        pattern_slug = r"shopee\.vn/.+-i\.(\d+)\.(\d+)"
+        pattern_product = r"shopee\.vn/product/(\d+)/(\d+)"
+        if not re.search(pattern_slug, v) and not re.search(pattern_product, v):
             raise ValueError(
-                "URL không hợp lệ. Format đúng: https://shopee.vn/ten-san-pham-i.{shop_id}.{item_id}"
+                "URL không hợp lệ. Cần format: "
+                "https://shopee.vn/ten-sp-i.{shop_id}.{item_id} "
+                "hoặc https://shopee.vn/product/{shop_id}/{item_id}"
             )
         return v
 

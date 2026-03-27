@@ -45,18 +45,22 @@ class ShopeeProduct:
 
 
 def parse_shopee_url(url: str) -> tuple[int, int]:
-    """Tách shop_id và item_id từ Shopee URL.
+    """Tách shop_id và item_id từ Shopee URL. Hỗ trợ 2 format:
 
-    URL format: https://shopee.vn/{slug}-i.{shop_id}.{item_id}
-    Ví dụ: https://shopee.vn/Ao-thun-i.123456789.987654321
-    → shop_id=123456789, item_id=987654321
+    Format 1: https://shopee.vn/{slug}-i.{shop_id}.{item_id}
+    Format 2: https://shopee.vn/product/{shop_id}/{item_id}?...
     """
+    # Format 1: slug-i.shop_id.item_id
     match = re.search(r"-i\.(\d+)\.(\d+)", url)
-    if not match:
-        raise ValueError(f"Không tách được shop_id/item_id từ URL: {url}")
-    shop_id = int(match.group(1))
-    item_id = int(match.group(2))
-    return shop_id, item_id
+    if match:
+        return int(match.group(1)), int(match.group(2))
+
+    # Format 2: /product/shop_id/item_id
+    match = re.search(r"/product/(\d+)/(\d+)", url)
+    if match:
+        return int(match.group(1)), int(match.group(2))
+
+    raise ValueError(f"Không tách được shop_id/item_id từ URL: {url}")
 
 
 async def fetch_product(shop_id: int, item_id: int) -> ShopeeProduct:
