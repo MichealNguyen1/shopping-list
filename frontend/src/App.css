@@ -181,6 +181,19 @@ body {
 .action-btn.reset { background: #fef3c7; color: #92400e; }
 .action-btn.reset:hover:not(:disabled) { background: #fde68a; }
 
+/* Inline edit */
+.row-editing td { background: #fffbeb !important; }
+.edit-input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1.5px solid #f59e0b;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  background: white;
+}
+.edit-input:focus { border-color: #d97706; }
+
 /* Skip reason inline input */
 .skip-input-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .skip-input-row input {
@@ -222,6 +235,38 @@ body {
 }
 .delete-btn:hover { color: #ef4444; }
 
+
+/* Login screen */
+.login-screen {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  background: #f0f2f5;
+}
+.login-card {
+  background: white;
+  border-radius: 12px;
+  padding: 36px 32px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  width: 100%; max-width: 340px;
+  text-align: center;
+}
+.login-card h1 { font-size: 1.4rem; margin-bottom: 8px; }
+.login-card p { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+.login-card input {
+  width: 100%; padding: 10px 14px;
+  border: 1.5px solid #e0e0e0; border-radius: 8px;
+  font-size: 14px; outline: none; margin-bottom: 12px;
+}
+.login-card input:focus { border-color: #2563eb; }
+.login-card button {
+  width: 100%; padding: 10px;
+  background: #2563eb; color: white;
+  border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.login-card button:hover:not(:disabled) { background: #1d4ed8; }
+.login-card button:disabled { background: #93c5fd; cursor: not-allowed; }
+.login-error { color: #dc2626; font-size: 12px; margin-bottom: 8px; margin-top: -4px; }
 
 /* Utilities */
 .center {

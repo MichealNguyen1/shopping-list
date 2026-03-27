@@ -5,16 +5,20 @@ import type { ShoppingItem, UpdateItemPayload } from "./types/item";
 import * as api from "./api/items";
 import { ItemForm } from "./components/ItemForm";
 import { ItemTable } from "./components/ItemTable";
+import { LoginScreen, isAuthenticated } from "./components/LoginScreen";
 import "./App.css";
 
 export default function App() {
+  const [authed, setAuthed] = useState(isAuthenticated());
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadItems();
-  }, []);
+    if (authed) loadItems();
+  }, [authed]);
+
+  if (!authed) return <LoginScreen onUnlock={() => setAuthed(true)} />;
 
   async function loadItems() {
     try {
@@ -56,7 +60,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>🛒 Danh sách mua sắm</h1>
+        <h1>🛒 Dung Bá Trước</h1>
       </header>
 
       <main className="app-main">

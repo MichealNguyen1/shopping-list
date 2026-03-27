@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import type { ItemStatus, ShoppingItem, UpdateItemPayload } from "../types/item";
 
-// Nhãn hiển thị cho từng trạng thái
 const STATUS_LABEL: Record<ItemStatus, string> = {
   considering: "Đang xem xét",
   will_buy: "Sẽ mua",
@@ -11,15 +10,21 @@ const STATUS_LABEL: Record<ItemStatus, string> = {
   skipped: "Bỏ qua",
 };
 
-// Màu badge cho từng trạng thái
 const STATUS_COLOR: Record<ItemStatus, string> = {
-  considering: "#f59e0b",  // vàng
-  will_buy: "#2563eb",      // xanh dương
-  purchased: "#059669",     // xanh lá
-  skipped: "#9ca3af",       // xám
+  considering: "#f59e0b",
+  will_buy: "#2563eb",
+  purchased: "#059669",
+  skipped: "#9ca3af",
 };
 
 type FilterType = "all" | ItemStatus;
+
+// State khi đang edit 1 row
+interface EditState {
+  name: string;
+  shopee_url: string;
+  note: string;
+}
 
 interface Props {
   items: ShoppingItem[];
@@ -29,19 +34,19 @@ interface Props {
 
 export function ItemTable({ items, onUpdateStatus, onDelete }: Props) {
   const [filter, setFilter] = useState<FilterType>("all");
-  // skipReasonInput: lưu tạm lý do skip trước khi confirm
   const [skipReasonInput, setSkipReasonInput] = useState<Record<string, string>>({});
-  // showSkipInput: id của item đang hiện ô nhập lý do skip
   const [showSkipInput, setShowSkipInput] = useState<string | null>(null);
-  // loadingId: item đang chờ API response
   const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  // editingId: row đang được edit; editState: giá trị tạm trong form edit
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editState, setEditState] = useState<EditState>({ name: "", shopee_url: "", note: "" });
 
   const filtered = useMemo(() => {
     if (filter === "all") return items;
     return items.filter((i) => i.status === filter);
   }, [items, filter]);
 
-  // Group theo category, giữ thứ tự sort từ backend
   const grouped = useMemo(() => {
     const map = new Map<string, ShoppingItem[]>();
     for (const item of filtered) {
@@ -52,7 +57,6 @@ export function ItemTable({ items, onUpdateStatus, onDelete }: Props) {
     return map;
   }, [filtered]);
 
-  // Counts cho filter tabs
   const counts: Record<FilterType, number> = useMemo(() => ({
     all: items.length,
     considering: items.filter((i) => i.status === "considering").length,
@@ -75,13 +79,35 @@ export function ItemTable({ items, onUpdateStatus, onDelete }: Props) {
     }
   }
 
+  function startEdit(item: ShoppingItem) {
+    setEditingId(item.id);
+    setEditState({ name: item.name, shopee_url: item.shopee_url, note: item.note });
+    setShowSkipInput(null); // đóng skip input nếu đang mở
+  }
+
+  async function saveEdit(id: string) {
+    if (!editState.name.trim()) return;
+    setLoadingId(id);
+    try {
+      await onUpdateStatus(id, {
+        name: editState.name.trim(),
+        shopee_url: editState.shopee_url.trim(),
+        note: editState.note.trim(),
+      });
+      setEditingId(null);
+    } finally {
+      setLoadingId(null);
+    }
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+  }
+
   function handleSkipClick(id: string) {
     setShowSkipInput(id);
     setSkipReasonInput((prev) => ({ ...prev, [id]: "" }));
-  }
-
-  function handleSkipConfirm(id: string) {
-    changeStatus(id, "skipped", skipReasonInput[id] ?? "");
+    setEditingId(null); // đóng edit nếu đang mở
   }
 
   const filterTabs: { key: FilterType; label: string }[] = [
@@ -134,103 +160,155 @@ export function ItemTable({ items, onUpdateStatus, onDelete }: Props) {
               </tr>
             ) : (
               Array.from(grouped.entries()).map(([category, categoryItems]) =>
-                categoryItems.map((item, idx) => (
-                  <tr key={item.id} className={`row-${item.status}`}>
-                    {/* Category chỉ hiện ở row đầu tiên của group */}
-                    {idx === 0 && (
-                      <td className="col-category" rowSpan={categoryItems.length}>
-                        {category}
-                      </td>
-                    )}
+                categoryItems.map((item, idx) => {
+                  const isEditing = editingId === item.id;
 
-                    <td className="col-name">
-                      <span className="item-name">{item.name}</span>
-                    </td>
+                  return (
+                    <tr key={item.id} className={`row-${item.status}${isEditing ? " row-editing" : ""}`}>
+                      {idx === 0 && (
+                        <td className="col-category" rowSpan={categoryItems.length}>
+                          {category}
+                        </td>
+                      )}
 
-                    <td className="col-note">
-                      {showSkipInput === item.id ? (
-                        <div className="skip-input-row">
+                      {/* Tên sản phẩm — click để edit */}
+                      <td className="col-name">
+                        {isEditing ? (
                           <input
-                            type="text"
-                            placeholder="Lý do bỏ qua (tuỳ chọn)"
-                            value={skipReasonInput[item.id] ?? ""}
-                            onChange={(e) =>
-                              setSkipReasonInput((prev) => ({ ...prev, [item.id]: e.target.value }))
-                            }
+                            className="edit-input"
+                            value={editState.name}
+                            onChange={(e) => setEditState((s) => ({ ...s, name: e.target.value }))}
                             autoFocus
                           />
-                          <button className="btn-confirm-skip"
-                            onClick={() => handleSkipConfirm(item.id)}
-                            disabled={loadingId === item.id}>
-                            Xác nhận
-                          </button>
-                          <button className="btn-cancel-skip"
-                            onClick={() => setShowSkipInput(null)}>
-                            Huỷ
-                          </button>
-                        </div>
-                      ) : (
-                        <span>
-                          {item.status === "skipped" && item.skip_reason
-                            ? `⚠️ ${item.skip_reason}`
-                            : item.note || "—"}
+                        ) : (
+                          <span className="item-name" title="Click để sửa"
+                            onClick={() => startEdit(item)}
+                            style={{ cursor: "pointer" }}>
+                            {item.name}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Ghi chú / skip reason / skip input */}
+                      <td className="col-note">
+                        {showSkipInput === item.id ? (
+                          <div className="skip-input-row">
+                            <input
+                              type="text"
+                              placeholder="Lý do bỏ qua (tuỳ chọn)"
+                              value={skipReasonInput[item.id] ?? ""}
+                              onChange={(e) =>
+                                setSkipReasonInput((prev) => ({ ...prev, [item.id]: e.target.value }))
+                              }
+                              autoFocus
+                            />
+                            <button className="btn-confirm-skip"
+                              onClick={() => changeStatus(item.id, "skipped", skipReasonInput[item.id])}
+                              disabled={loadingId === item.id}>
+                              Xác nhận
+                            </button>
+                            <button className="btn-cancel-skip" onClick={() => setShowSkipInput(null)}>
+                              Huỷ
+                            </button>
+                          </div>
+                        ) : isEditing ? (
+                          <input
+                            className="edit-input"
+                            placeholder="Ghi chú"
+                            value={editState.note}
+                            onChange={(e) => setEditState((s) => ({ ...s, note: e.target.value }))}
+                          />
+                        ) : (
+                          <span onClick={() => startEdit(item)} style={{ cursor: "pointer" }}>
+                            {item.status === "skipped" && item.skip_reason
+                              ? `⚠️ ${item.skip_reason}`
+                              : item.note || "—"}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Link Shopee */}
+                      <td className="col-link">
+                        {isEditing ? (
+                          <input
+                            className="edit-input"
+                            placeholder="https://s.shopee.vn/..."
+                            value={editState.shopee_url}
+                            onChange={(e) => setEditState((s) => ({ ...s, shopee_url: e.target.value }))}
+                          />
+                        ) : item.shopee_url ? (
+                          <a href={item.shopee_url} target="_blank" rel="noopener noreferrer"
+                            className="shopee-link">
+                            🛒 Xem
+                          </a>
+                        ) : (
+                          <span onClick={() => startEdit(item)}
+                            style={{ cursor: "pointer", color: "#d1d5db" }}>+ link</span>
+                        )}
+                      </td>
+
+                      <td className="col-status">
+                        <span className="status-badge"
+                          style={{ background: STATUS_COLOR[item.status] + "22", color: STATUS_COLOR[item.status] }}>
+                          {STATUS_LABEL[item.status]}
                         </span>
-                      )}
-                    </td>
+                      </td>
 
-                    <td className="col-link">
-                      {item.shopee_url ? (
-                        <a href={item.shopee_url} target="_blank" rel="noopener noreferrer"
-                          className="shopee-link">
-                          🛒 Xem
-                        </a>
-                      ) : "—"}
-                    </td>
+                      {/* Hành động */}
+                      <td className="col-actions">
+                        {isEditing ? (
+                          <>
+                            <button className="action-btn purchased"
+                              onClick={() => saveEdit(item.id)}
+                              disabled={loadingId === item.id || !editState.name.trim()}>
+                              ✓ Lưu
+                            </button>
+                            <button className="action-btn reset" onClick={cancelEdit}>
+                              Huỷ
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            {item.status !== "will_buy" && item.status !== "purchased" && item.status !== "skipped" && (
+                              <button className="action-btn will-buy"
+                                disabled={loadingId === item.id}
+                                onClick={() => changeStatus(item.id, "will_buy")}>
+                                ✓ Sẽ mua
+                              </button>
+                            )}
+                            {item.status !== "purchased" && item.status !== "skipped" && (
+                              <button className="action-btn purchased"
+                                disabled={loadingId === item.id}
+                                onClick={() => changeStatus(item.id, "purchased")}>
+                                ✓ Đã mua
+                              </button>
+                            )}
+                            {item.status !== "skipped" && (
+                              <button className="action-btn skip"
+                                disabled={loadingId === item.id}
+                                onClick={() => handleSkipClick(item.id)}>
+                                ✕ Bỏ qua
+                              </button>
+                            )}
+                            {(item.status === "purchased" || item.status === "skipped") && (
+                              <button className="action-btn reset"
+                                disabled={loadingId === item.id}
+                                onClick={() => changeStatus(item.id, "considering")}>
+                                ↩ Xem lại
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </td>
 
-                    <td className="col-status">
-                      <span className="status-badge"
-                        style={{ background: STATUS_COLOR[item.status] + "22", color: STATUS_COLOR[item.status] }}>
-                        {STATUS_LABEL[item.status]}
-                      </span>
-                    </td>
-
-                    {/* Nút hành động — chỉ hiện các trạng thái khả dụng */}
-                    <td className="col-actions">
-                      {item.status !== "will_buy" && item.status !== "purchased" && item.status !== "skipped" && (
-                        <button className="action-btn will-buy"
-                          disabled={loadingId === item.id}
-                          onClick={() => changeStatus(item.id, "will_buy")}>
-                          ✓ Sẽ mua
-                        </button>
-                      )}
-                      {item.status !== "purchased" && item.status !== "skipped" && (
-                        <button className="action-btn purchased"
-                          disabled={loadingId === item.id}
-                          onClick={() => changeStatus(item.id, "purchased")}>
-                          ✓ Đã mua
-                        </button>
-                      )}
-                      {item.status !== "skipped" && (
-                        <button className="action-btn skip"
-                          disabled={loadingId === item.id}
-                          onClick={() => handleSkipClick(item.id)}>
-                          ✕ Bỏ qua
-                        </button>
-                      )}
-                      {(item.status === "purchased" || item.status === "skipped") && (
-                        <button className="action-btn reset"
-                          disabled={loadingId === item.id}
-                          onClick={() => changeStatus(item.id, "considering")}>
-                          ↩ Xem lại
-                        </button>
-                      )}
-                    </td>
-
-                    <td className="col-action">
-                      <button className="delete-btn" onClick={() => onDelete(item.id)}>✕</button>
-                    </td>
-                  </tr>
-                ))
+                      <td className="col-action">
+                        {!isEditing && (
+                          <button className="delete-btn" onClick={() => onDelete(item.id)}>✕</button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               )
             )}
           </tbody>
