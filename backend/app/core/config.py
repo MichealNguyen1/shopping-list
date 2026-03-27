@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     telegram_bot_token: str = ""
     telegram_chat_id: str = ""
 
+    # Cookie Shopee từ browser đang đăng nhập
+    # Lấy: F12 → Network → click sản phẩm → copy Cookie header
+    # Hết hạn ~30 ngày → update lại trong Vercel env vars
+    shopee_cookie: str = ""
+
     # Cron secret — bảo vệ endpoint /cron/check-prices
     # Tạo bằng: python -c "import secrets; print(secrets.token_hex(32))"
     cron_secret: str = "change-me-in-production"
