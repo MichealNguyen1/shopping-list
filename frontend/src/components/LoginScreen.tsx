@@ -29,7 +29,7 @@ export function LoginScreen({ onUnlock }: Props) {
   return (
     <div className="login-screen">
       <div className="login-card">
-        <h1>🛒 Dung Bá Trước</h1>
+        <h1>🛒 Dun Bá Tước</h1>
         <p>Nhập mật khẩu để vào danh sách</p>
         <form onSubmit={handleSubmit}>
           <input

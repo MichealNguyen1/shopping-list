@@ -60,7 +60,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>🛒 Dung Bá Trước</h1>
+        <h1>🛒 Dun Bá Tước</h1>
       </header>
 
       <main className="app-main">
