@@ -28,13 +28,16 @@ def _to_response(doc: dict) -> ItemResponse:
     Hàm này làm cầu nối giữa 2 world đó.
     """
     return ItemResponse(
-        id=str(doc["_id"]),           # ObjectId → string
+        id=str(doc["_id"]),
         name=doc["name"],
+        category=doc.get("category", "Khác"),
         brand=doc.get("brand", ""),
         quantity=doc["quantity"],
         price=doc["price"],
         is_purchased=doc["is_purchased"],
-        created_at=doc["created_at"].isoformat(),  # datetime → ISO string
+        shopee_url=doc.get("shopee_url", ""),
+        note=doc.get("note", ""),
+        created_at=doc["created_at"].isoformat(),
     )
 
 

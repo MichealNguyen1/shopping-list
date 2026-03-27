@@ -15,10 +15,13 @@ class ItemCreate(BaseModel):
     Chỉ gồm những field CLIENT được phép gửi lên.
     id, created_at không có ở đây vì server tự tạo.
     """
-    name: str = Field(..., min_length=1, max_length=100, examples=["Cà phê Highlands"])
-    brand: str = Field(default="", max_length=100, examples=["Highlands Coffee"])
-    quantity: int = Field(default=1, ge=1, examples=[2])
-    price: float = Field(default=0.0, ge=0, examples=[85000])
+    name: str = Field(..., min_length=1, max_length=200, examples=["bình sữa Dr Brown"])
+    category: str = Field(default="Khác", max_length=100, examples=["1. Đồ cho bé ăn"])
+    brand: str = Field(default="", max_length=100, examples=["Dr Brown"])
+    quantity: int = Field(default=1, ge=1, examples=[1])
+    price: float = Field(default=0.0, ge=0, examples=[0])
+    shopee_url: str = Field(default="", examples=["https://s.shopee.vn/xxx"])
+    note: str = Field(default="", max_length=500, examples=[""])
 
 
 class ItemUpdate(BaseModel):
@@ -27,11 +30,14 @@ class ItemUpdate(BaseModel):
     Tất cả field đều Optional vì PATCH chỉ update field được gửi lên.
     Khác với PUT (replace toàn bộ document), PATCH chỉ thay đổi field có trong request.
     """
-    name: str | None = Field(default=None, min_length=1, max_length=100)
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    category: str | None = Field(default=None, max_length=100)
     brand: str | None = Field(default=None, max_length=100)
     quantity: int | None = Field(default=None, ge=1)
     price: float | None = Field(default=None, ge=0)
     is_purchased: bool | None = Field(default=None)
+    shopee_url: str | None = Field(default=None)
+    note: str | None = Field(default=None, max_length=500)
 
 
 class ItemResponse(BaseModel):
@@ -40,11 +46,13 @@ class ItemResponse(BaseModel):
     # id là string (đã convert từ ObjectId), không phải "_id"
     id: str
     name: str
+    category: str
     brand: str
     quantity: int
     price: float
     is_purchased: bool
-    # ISO 8601 string: "2024-01-15T08:30:00Z" — dễ parse ở mọi ngôn ngữ
+    shopee_url: str
+    note: str
     created_at: str
 
 

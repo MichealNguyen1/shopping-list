@@ -8,19 +8,25 @@
 export interface ShoppingItem {
   id: string;
   name: string;
+  category: string;
   brand: string;
   quantity: number;
   price: number;
   is_purchased: boolean;
-  created_at: string; // ISO 8601 string: "2024-01-15T08:30:00Z"
+  shopee_url?: string;
+  note?: string;
+  created_at: string;
 }
 
 // Data gửi lên khi tạo item mới — phải match với ItemCreate trong backend
 export interface CreateItemPayload {
   name: string;
-  brand?: string;     // ? = optional
+  category?: string;
+  brand?: string;
   quantity?: number;
   price?: number;
+  shopee_url?: string;
+  note?: string;
 }
 
 // Data gửi lên khi update — tất cả optional vì PATCH chỉ update field có giá trị
@@ -30,6 +36,8 @@ export interface UpdateItemPayload {
   quantity?: number;
   price?: number;
   is_purchased?: boolean;
+  shopee_url?: string;
+  note?: string;
 }
 
 // Shape của GET /items response

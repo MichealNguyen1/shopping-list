@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.shoppinglist.pricechecker</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <!-- Đường dẫn python trong venv của price-checker -->
+        <string>/Users/cuongnm/Documents/shopping-list/price-checker/venv/bin/python</string>
+        <string>/Users/cuongnm/Documents/shopping-list/price-checker/check_prices.py</string>
+    </array>
+
+    <!-- Chạy mỗi 3600 giây = 1 giờ -->
+    <key>StartInterval</key>
+    <integer>3600</integer>
+
+    <!-- Log output ra file để debug -->
+    <key>StandardOutPath</key>
+    <string>/Users/cuongnm/Documents/shopping-list/price-checker/logs/output.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/cuongnm/Documents/shopping-list/price-checker/logs/error.log</string>
+
+    <!-- Tự start khi load -->
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>

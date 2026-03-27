@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import type { ShoppingItem } from "./types/item";
 import * as api from "./api/items";
 import { ItemForm } from "./components/ItemForm";
-import { ItemList } from "./components/ItemList";
+import { ItemTable } from "./components/ItemTable";
 import "./App.css";
 
 export default function App() {
@@ -78,7 +78,7 @@ export default function App() {
 
       <main className="app-main">
         <ItemForm onAdd={handleAdd} />
-        <ItemList
+        <ItemTable
           items={items}
           onTogglePurchased={handleTogglePurchased}
           onDelete={handleDelete}
