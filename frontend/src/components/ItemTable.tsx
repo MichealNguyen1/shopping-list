@@ -165,8 +165,13 @@ export function ItemTable({ items, onUpdateStatus, onDelete }: Props) {
 
                   return (
                     <tr key={item.id} className={`row-${item.status}${isEditing ? " row-editing" : ""}`}>
-                      {idx === 0 && (
+                      {/* Desktop: rowSpan để gộp ô category; Mobile: hiện ở mọi row qua CSS */}
+                      {idx === 0 ? (
                         <td className="col-category" rowSpan={categoryItems.length}>
+                          {category}
+                        </td>
+                      ) : (
+                        <td className="col-category col-category-mobile">
                           {category}
                         </td>
                       )}
