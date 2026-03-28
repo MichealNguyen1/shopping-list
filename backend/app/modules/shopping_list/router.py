@@ -7,7 +7,9 @@ from __future__ import annotations  # cho phép dùng X | Y syntax trên Python 
 #
 # Business logic KHÔNG nằm ở đây — nằm ở services.py
 
-from fastapi import APIRouter, Depends, HTTPException, status
+import re
+import httpx
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.core.database import get_database
@@ -31,6 +33,35 @@ router = APIRouter(prefix="/items", tags=["items"])
 # → Dễ mock trong testing: chỉ cần override dependency, không cần patch module
 def get_db() -> AsyncIOMotorDatabase:
     return get_database()
+
+
+@router.get(
+    "/shopee-image",
+    summary="Tự động lấy ảnh từ Shopee URL",
+)
+async def get_shopee_image(url: str = Query(..., description="Shopee product URL")):
+    """GET /items/shopee-image?url=... — Fetch og:image từ trang sản phẩm Shopee."""
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept-Language": "vi-VN,vi;q=0.9,en;q=0.8",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        }
+        async with httpx.AsyncClient(follow_redirects=True, timeout=10) as client:
+            resp = await client.get(url, headers=headers)
+
+        # Tìm og:image trong HTML (Shopee render server-side)
+        match = re.search(
+            r'<meta\b[^>]*\bproperty=["\']og:image["\']\s[^>]*\bcontent=["\']([^"\']+)["\']'
+            r'|<meta\b[^>]*\bcontent=["\']([^"\']+)["\']\s[^>]*\bproperty=["\']og:image["\']',
+            resp.text,
+        )
+        if match:
+            image_url = match.group(1) or match.group(2)
+            return {"image_url": image_url}
+    except Exception:
+        pass
+    return {"image_url": ""}
 
 
 @router.get(

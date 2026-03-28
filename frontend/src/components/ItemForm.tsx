@@ -1,6 +1,6 @@
 // ItemForm.tsx
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CreateItemPayload } from "../types/item";
 
 const CATEGORIES = [
@@ -14,6 +14,8 @@ const CATEGORIES = [
   "Khác",
 ];
 
+const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
+
 interface Props {
   onAdd: (data: CreateItemPayload) => Promise<void>;
 }
@@ -26,8 +28,39 @@ export function ItemForm({ onAdd }: Props) {
   const [quantity, setQuantity] = useState(1);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fetchingImage, setFetchingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
+
+  // Debounce ref: tránh gọi API mỗi lần gõ phím
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Tự động fetch ảnh khi shopeeUrl thay đổi
+  useEffect(() => {
+    if (!shopeeUrl.trim().startsWith("http")) {
+      return;
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(async () => {
+      setFetchingImage(true);
+      try {
+        const res = await fetch(
+          `${API_BASE}/items/shopee-image?url=${encodeURIComponent(shopeeUrl.trim())}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data.image_url) setImageUrl(data.image_url);
+        }
+      } catch {
+        // silent fail — user vẫn có thể nhập tay
+      } finally {
+        setFetchingImage(false);
+      }
+    }, 800); // chờ 800ms sau khi ngừng gõ
+
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [shopeeUrl]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -69,22 +102,36 @@ export function ItemForm({ onAdd }: Props) {
 
       {/* Row 2: link Shopee + số lượng */}
       <div className="form-row">
-        <input type="url" placeholder="Link Shopee" value={shopeeUrl}
+        <input type="url" placeholder="Link Shopee (tự lấy ảnh)" value={shopeeUrl}
           onChange={(e) => setShopeeUrl(e.target.value)} className="input-url" />
         <input type="number" placeholder="SL" value={quantity} min={1} max={999}
           onChange={(e) => setQuantity(Number(e.target.value))}
           style={{ width: 64, flex: "none" }} />
       </div>
 
+      {/* Preview ảnh tự động */}
+      {(fetchingImage || imageUrl) && (
+        <div className="image-preview-row">
+          {fetchingImage ? (
+            <span className="fetch-status">⏳ Đang lấy ảnh...</span>
+          ) : imageUrl ? (
+            <>
+              <img src={imageUrl} alt="preview" className="image-preview" />
+              <span className="fetch-status" style={{ color: "#059669" }}>✓ Đã lấy ảnh</span>
+              <button type="button" className="btn-toggle"
+                onClick={() => setImageUrl("")}>Xoá ảnh</button>
+            </>
+          ) : null}
+        </div>
+      )}
+
       <button type="button" className="btn-toggle"
         onClick={() => setExpanded(!expanded)}>
-        {expanded ? "▲ Ẩn" : "▼ Thêm ảnh & ghi chú"}
+        {expanded ? "▲ Ẩn" : "▼ Ghi chú / size / màu"}
       </button>
 
       {expanded && (
         <div className="form-row">
-          <input type="url" placeholder="Link ảnh sản phẩm (paste từ Shopee)" value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)} style={{ flex: 2 }} />
           <input type="text" placeholder="Ghi chú / size / màu" value={note}
             onChange={(e) => setNote(e.target.value)} style={{ flex: 1 }} />
         </div>
