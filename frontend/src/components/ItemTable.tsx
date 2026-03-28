@@ -218,8 +218,12 @@ export function ItemTable({ items, onUpdateStatus, onDelete }: Props) {
                     )}
                   </div>
 
-                  {/* Phải: status + xoá */}
+                  {/* Phải: link Shopee + status + xoá */}
                   <div className="item-right">
+                    {!isEditing && item.shopee_url && (
+                      <a href={item.shopee_url} target="_blank" rel="noopener noreferrer"
+                        className="shopee-link">🛒 Shopee</a>
+                    )}
                     <span className={`status-tag ${STATUS_CLASS[item.status]}`}>
                       {STATUS_LABEL[item.status]}
                     </span>
@@ -244,12 +248,6 @@ export function ItemTable({ items, onUpdateStatus, onDelete }: Props) {
 
                 {/* Action buttons */}
                 <div className="item-actions">
-                  {/* Link Shopee luôn hiện ở đầu hàng actions */}
-                  {!isEditing && item.shopee_url && (
-                    <a href={item.shopee_url} target="_blank" rel="noopener noreferrer"
-                      className="shopee-link btn-action">🛒 Shopee</a>
-                  )}
-
                   {isEditing ? (
                     <>
                       <button className="btn-action btn-save"
