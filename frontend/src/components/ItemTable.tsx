@@ -22,6 +22,8 @@ type FilterType = "all" | ItemStatus;
 interface EditState {
   name: string;
   shopee_url: string;
+  image_url: string;
+  quantity: number;
   note: string;
 }
 
@@ -37,7 +39,7 @@ export function ItemTable({ items, onUpdateStatus, onDelete }: Props) {
   const [showSkipInput, setShowSkipInput] = useState<string | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editState, setEditState] = useState<EditState>({ name: "", shopee_url: "", note: "" });
+  const [editState, setEditState] = useState<EditState>({ name: "", shopee_url: "", image_url: "", quantity: 1, note: "" });
 
   const filtered = useMemo(() => {
     if (filter === "all") return items;
@@ -78,7 +80,7 @@ export function ItemTable({ items, onUpdateStatus, onDelete }: Props) {
 
   function startEdit(item: ShoppingItem) {
     setEditingId(item.id);
-    setEditState({ name: item.name, shopee_url: item.shopee_url, note: item.note });
+    setEditState({ name: item.name, shopee_url: item.shopee_url, image_url: item.image_url, quantity: item.quantity, note: item.note });
     setShowSkipInput(null);
   }
 
@@ -89,6 +91,8 @@ export function ItemTable({ items, onUpdateStatus, onDelete }: Props) {
       await onUpdateStatus(id, {
         name: editState.name.trim(),
         shopee_url: editState.shopee_url.trim(),
+        image_url: editState.image_url.trim(),
+        quantity: editState.quantity,
         note: editState.note.trim(),
       });
       setEditingId(null);
@@ -160,7 +164,22 @@ export function ItemTable({ items, onUpdateStatus, onDelete }: Props) {
                 {idx > 0 && <div className="item-divider" />}
 
                 <div className="item-main">
-                  {/* Tên + ghi chú */}
+                  {/* Ảnh sản phẩm */}
+                  <div className="item-thumb">
+                    {isEditing ? (
+                      <input className="edit-input edit-url"
+                        value={editState.image_url}
+                        onChange={(e) => setEditState((s) => ({ ...s, image_url: e.target.value }))}
+                        placeholder="Link ảnh" />
+                    ) : item.image_url ? (
+                      <img src={item.image_url} alt={item.name} className="product-img"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    ) : (
+                      <div className="product-img-placeholder">🛍️</div>
+                    )}
+                  </div>
+
+                  {/* Tên + ghi chú + quantity */}
                   <div className="item-info">
                     {isEditing ? (
                       <input className="edit-input edit-name"
@@ -177,12 +196,23 @@ export function ItemTable({ items, onUpdateStatus, onDelete }: Props) {
                       <input className="edit-input edit-note"
                         value={editState.note}
                         onChange={(e) => setEditState((s) => ({ ...s, note: e.target.value }))}
-                        placeholder="Ghi chú" />
+                        placeholder="Ghi chú / size / màu" />
                     ) : (
                       item.note && <span className="item-note">{item.note}</span>
                     )}
 
-                    {/* Skip reason */}
+                    {/* Số lượng */}
+                    {isEditing ? (
+                      <div className="edit-qty-row">
+                        <span className="item-note">Số lượng:</span>
+                        <input type="number" className="edit-input edit-qty"
+                          value={editState.quantity} min={1} max={999}
+                          onChange={(e) => setEditState((s) => ({ ...s, quantity: Number(e.target.value) }))} />
+                      </div>
+                    ) : (
+                      <span className="item-qty">x{item.quantity}</span>
+                    )}
+
                     {!isEditing && item.status === "skipped" && item.skip_reason && (
                       <span className="item-skip-reason">⚠️ {item.skip_reason}</span>
                     )}
@@ -190,20 +220,13 @@ export function ItemTable({ items, onUpdateStatus, onDelete }: Props) {
 
                   {/* Phải: link + status + xoá */}
                   <div className="item-right">
-                    {isEditing ? (
-                      <input className="edit-input edit-url"
-                        value={editState.shopee_url}
-                        onChange={(e) => setEditState((s) => ({ ...s, shopee_url: e.target.value }))}
-                        placeholder="Link Shopee" />
-                    ) : item.shopee_url ? (
+                    {!isEditing && item.shopee_url && (
                       <a href={item.shopee_url} target="_blank" rel="noopener noreferrer"
                         className="shopee-link">🛒 Shopee</a>
-                    ) : null}
-
+                    )}
                     <span className={`status-tag ${STATUS_CLASS[item.status]}`}>
                       {STATUS_LABEL[item.status]}
                     </span>
-
                     <button className="delete-btn" onClick={() => onDelete(item.id)}>✕</button>
                   </div>
                 </div>

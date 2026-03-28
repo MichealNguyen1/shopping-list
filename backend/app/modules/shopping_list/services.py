@@ -13,8 +13,9 @@ def _to_response(doc: dict) -> ItemResponse:
         name=doc["name"],
         category=doc.get("category", "Khác"),
         shopee_url=doc.get("shopee_url", ""),
+        image_url=doc.get("image_url", ""),
+        quantity=doc.get("quantity", 1),
         note=doc.get("note", ""),
-        # items cũ trong DB có is_purchased → map sang status mới
         status=doc.get("status", "purchased" if doc.get("is_purchased") else "considering"),
         skip_reason=doc.get("skip_reason", ""),
         created_at=doc["created_at"].isoformat(),
@@ -41,8 +42,10 @@ async def create_item(db: AsyncIOMotorDatabase, data: ItemCreate) -> ItemRespons
         "name": data.name,
         "category": data.category,
         "shopee_url": data.shopee_url,
+        "image_url": data.image_url,
+        "quantity": data.quantity,
         "note": data.note,
-        "status": "considering",  # mặc định: đang xem xét
+        "status": "considering",
         "skip_reason": "",
         "created_at": now,
     }

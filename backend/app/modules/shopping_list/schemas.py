@@ -21,6 +21,8 @@ class ItemCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200, examples=["bình sữa Dr Brown"])
     category: str = Field(default="Khác", max_length=100, examples=["1. Đồ cho bé ăn"])
     shopee_url: str = Field(default="", examples=["https://s.shopee.vn/xxx"])
+    image_url: str = Field(default="", examples=["https://down-vn.img.susercontent.com/..."])
+    quantity: int = Field(default=1, ge=1, le=999)
     note: str = Field(default="", max_length=500)
 
 
@@ -28,10 +30,10 @@ class ItemUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=200)
     category: str | None = Field(default=None, max_length=100)
     shopee_url: str | None = Field(default=None)
+    image_url: str | None = Field(default=None)
+    quantity: int | None = Field(default=None, ge=1, le=999)
     note: str | None = Field(default=None, max_length=500)
-    # Trạng thái mới sau khi user ra quyết định
     status: ItemStatus | None = Field(default=None)
-    # Lý do không mua — chỉ dùng khi status = "skipped"
     skip_reason: str | None = Field(default=None, max_length=500)
 
 
@@ -40,6 +42,8 @@ class ItemResponse(BaseModel):
     name: str
     category: str
     shopee_url: str
+    image_url: str
+    quantity: int
     note: str
     status: ItemStatus
     skip_reason: str
