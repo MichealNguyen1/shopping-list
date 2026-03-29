@@ -18,9 +18,9 @@ export interface Milestone {
 
 export interface Task {
   id: string | null;
-  name: string;
-  is_done: boolean;
-  due_date: string | null;
+  title: string;
+  completed: boolean;
+  due_date?: string | null;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -64,7 +64,7 @@ export const useMilestones = () => {
       });
       if (!response.ok) throw new Error('Failed to create');
       const newMilestone = await response.json();
-      setMilestones([...milestones, newMilestone]);
+      setMilestones((prev) => [...prev, newMilestone]);
       return newMilestone;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error');
@@ -72,7 +72,7 @@ export const useMilestones = () => {
     } finally {
       setLoading(false);
     }
-  }, [milestones]);
+  }, []);
 
   const updateMilestone = useCallback(async (id: string, payload: any) => {
     setLoading(true);
@@ -84,7 +84,7 @@ export const useMilestones = () => {
       });
       if (!response.ok) throw new Error('Failed to update');
       const updated = await response.json();
-      setMilestones(milestones.map(m => m.id === id ? updated : m));
+      setMilestones((prev) => prev.map(m => m.id === id ? updated : m));
       return updated;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error');
@@ -92,7 +92,7 @@ export const useMilestones = () => {
     } finally {
       setLoading(false);
     }
-  }, [milestones]);
+  }, []);
 
   const deleteMilestone = useCallback(async (id: string) => {
     setLoading(true);
@@ -101,7 +101,7 @@ export const useMilestones = () => {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete');
-      setMilestones(milestones.filter(m => m.id !== id));
+      setMilestones((prev) => prev.filter(m => m.id !== id));
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error');
@@ -109,7 +109,7 @@ export const useMilestones = () => {
     } finally {
       setLoading(false);
     }
-  }, [milestones]);
+  }, []);
 
   return { milestones, loading, error, fetchMilestones, createMilestone, updateMilestone, deleteMilestone };
 };
