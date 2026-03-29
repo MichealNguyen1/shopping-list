@@ -93,15 +93,24 @@ export const CalendarView: React.FC<{ onNavigateToShopping?: () => void }> = ({ 
   const [editingId, setEditingId] = useState<string | null>(null);
   
   // Form state for adding/editing
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    week: number;
+    title: string;
+    category: 'checkup' | 'shopping' | 'preparation' | 'booking' | 'other';
+    due_date: string;
+    description: string;
+    notes: string;
+    status: 'pending' | 'in_progress' | 'completed';
+    priority: 'low' | 'medium' | 'high';
+  }>({
     week: 0,
     title: '',
-    category: 'checkup' as const,
+    category: 'checkup',
     due_date: '',
     description: '',
     notes: '',
-    status: 'pending' as const,
-    priority: 'medium' as const,
+    status: 'pending',
+    priority: 'medium',
   });
 
   useEffect(() => {
@@ -128,12 +137,12 @@ export const CalendarView: React.FC<{ onNavigateToShopping?: () => void }> = ({ 
     setFormData({
       week: milestone.week,
       title: milestone.title,
-      category: milestone.category,
+      category: milestone.category as 'checkup' | 'shopping' | 'preparation' | 'booking' | 'other',
       due_date: milestone.due_date,
       description: milestone.description,
       notes: milestone.notes,
-      status: milestone.status,
-      priority: milestone.priority,
+      status: milestone.status as 'pending' | 'in_progress' | 'completed',
+      priority: milestone.priority as 'low' | 'medium' | 'high',
     });
     setEditingId(milestone.id);
     setIsFormOpen(true);
