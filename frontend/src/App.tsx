@@ -6,6 +6,7 @@ import * as api from "./api/items";
 import { ItemForm } from "./components/ItemForm";
 import { ItemTable } from "./components/ItemTable";
 import { LoginScreen, isAuthenticated } from "./components/LoginScreen";
+import { CalendarView } from "./components/CalendarView";
 import "./App.css";
 
 export default function App() {
@@ -13,6 +14,7 @@ export default function App() {
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"shopping" | "calendar">("shopping");
 
   useEffect(() => {
     if (authed) loadItems();
@@ -63,13 +65,34 @@ export default function App() {
         <h1>🛒 Dun Bá Tước</h1>
       </header>
 
+      <nav className="app-tabs">
+        <button
+          className={`tab-btn ${activeTab === "shopping" ? "active" : ""}`}
+          onClick={() => setActiveTab("shopping")}
+        >
+          🛒 Danh Sách
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "calendar" ? "active" : ""}`}
+          onClick={() => setActiveTab("calendar")}
+        >
+          📅 Lịch Thai Kỳ
+        </button>
+      </nav>
+
       <main className="app-main">
-        <ItemForm onAdd={handleAdd} />
-        <ItemTable
-          items={items}
-          onUpdateStatus={handleUpdateStatus}
-          onDelete={handleDelete}
-        />
+        {activeTab === "shopping" ? (
+          <>
+            <ItemForm onAdd={handleAdd} />
+            <ItemTable
+              items={items}
+              onUpdateStatus={handleUpdateStatus}
+              onDelete={handleDelete}
+            />
+          </>
+        ) : (
+          <CalendarView />
+        )}
       </main>
     </div>
   );
