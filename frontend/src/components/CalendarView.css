@@ -509,6 +509,10 @@
 }
 
 /* Form Styles */
+.form-modal {
+  background: #fafafa !important;
+}
+
 .form-modal .modal-header {
   background: linear-gradient(135deg, #ee4d2d 0%, #f08080 100%);
 }
