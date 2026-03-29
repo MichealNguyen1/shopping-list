@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.core.database import connect_db, disconnect_db
 from app.modules.shopping_list.router import router as shopping_router
 from app.modules.price_tracker.router import router as price_tracker_router
+from app.modules.pregnancy_calendar.router import router as pregnancy_calendar_router
 
 
 @asynccontextmanager
@@ -62,6 +63,7 @@ app.add_middleware(
 # Tất cả endpoint trong shopping_router sẽ có path: /api/items/...
 app.include_router(shopping_router, prefix="/api")
 app.include_router(price_tracker_router, prefix="/api")
+app.include_router(pregnancy_calendar_router, prefix="/api")
 
 
 @app.get("/", tags=["health"])
