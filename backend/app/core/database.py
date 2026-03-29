@@ -43,3 +43,9 @@ def get_database() -> AsyncIOMotorDatabase:
     if _client is None:
         raise RuntimeError("Database chưa được kết nối. Gọi connect_db() trước.")
     return _client[settings.mongodb_db]
+
+
+# Alias cho compatibility
+def get_db() -> AsyncIOMotorDatabase:
+    """Alias của get_database() cho compatibility."""
+    return get_database()

@@ -16,7 +16,7 @@ router = APIRouter(prefix="/milestones", tags=["pregnancy_calendar"])
 async def create_milestone(data: CreateMilestoneSchema):
     """Tạo milestone mới."""
     try:
-        return PregnancyMilestoneService.create_milestone(data)
+        return await PregnancyMilestoneService.create_milestone(data)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -24,7 +24,7 @@ async def create_milestone(data: CreateMilestoneSchema):
 @router.get("/{milestone_id}", response_model=MilestoneResponseSchema)
 async def get_milestone(milestone_id: str):
     """Lấy 1 milestone theo ID."""
-    milestone = PregnancyMilestoneService.get_milestone(milestone_id)
+    milestone = await PregnancyMilestoneService.get_milestone(milestone_id)
     if not milestone:
         raise HTTPException(status_code=404, detail="Milestone not found")
     return milestone
@@ -39,7 +39,7 @@ async def list_milestones(
     limit: int = Query(100, ge=1, le=100),
 ):
     """Lấy danh sách milestones."""
-    milestones, total = PregnancyMilestoneService.get_all_milestones(
+    milestones, total = await PregnancyMilestoneService.get_all_milestones(
         week=week,
         status=status,
         category=category,
@@ -52,7 +52,7 @@ async def list_milestones(
 @router.put("/{milestone_id}", response_model=MilestoneResponseSchema)
 async def update_milestone(milestone_id: str, data: UpdateMilestoneSchema):
     """Update milestone."""
-    milestone = PregnancyMilestoneService.update_milestone(milestone_id, data)
+    milestone = await PregnancyMilestoneService.update_milestone(milestone_id, data)
     if not milestone:
         raise HTTPException(status_code=404, detail="Milestone not found")
     return milestone
@@ -61,7 +61,7 @@ async def update_milestone(milestone_id: str, data: UpdateMilestoneSchema):
 @router.delete("/{milestone_id}")
 async def delete_milestone(milestone_id: str):
     """Xoá milestone."""
-    success = PregnancyMilestoneService.delete_milestone(milestone_id)
+    success = await PregnancyMilestoneService.delete_milestone(milestone_id)
     if not success:
         raise HTTPException(status_code=404, detail="Milestone not found")
     return {"deleted": True}
@@ -70,7 +70,7 @@ async def delete_milestone(milestone_id: str):
 @router.post("/{milestone_id}/tasks", response_model=MilestoneResponseSchema)
 async def add_task(milestone_id: str, task: TaskSchema):
     """Thêm task vào milestone."""
-    milestone = PregnancyMilestoneService.add_task_to_milestone(milestone_id, task)
+    milestone = await PregnancyMilestoneService.add_task_to_milestone(milestone_id, task)
     if not milestone:
         raise HTTPException(status_code=404, detail="Milestone not found")
     return milestone
@@ -84,4 +84,4 @@ async def get_milestones_by_week_range(start_week: int, end_week: int):
     if start_week < 8 or end_week > 40:
         raise HTTPException(status_code=400, detail="Week must be between 8 and 40")
     
-    return PregnancyMilestoneService.get_milestones_by_week_range(start_week, end_week)
+    return await PregnancyMilestoneService.get_milestones_by_week_range(start_week, end_week)

@@ -1,7 +1,7 @@
-# services.py — Business logic cho Pregnancy Milestones
+# services.py — Business logic cho Pregnancy Milestones (ASYNC)
 from datetime import datetime, timezone
 from bson import ObjectId
-from app.core.database import get_db
+from app.core.database import get_database
 from app.modules.pregnancy_calendar.models import PregnancyMilestone, Task, StatusEnum, CategoryEnum
 from app.modules.pregnancy_calendar.schemas import (
     CreateMilestoneSchema,
@@ -12,18 +12,18 @@ from app.modules.pregnancy_calendar.schemas import (
 
 
 class PregnancyMilestoneService:
-    """Service class để quản lý Pregnancy Milestones."""
+    """Service class để quản lý Pregnancy Milestones (async operations)."""
     
     COLLECTION_NAME = "pregnancy_milestones"
     
     @staticmethod
     def get_collection():
         """Lấy MongoDB collection."""
-        db = get_db()
+        db = get_database()
         return db[PregnancyMilestoneService.COLLECTION_NAME]
     
     @staticmethod
-    def create_milestone(create_data: CreateMilestoneSchema) -> MilestoneResponseSchema:
+    async def create_milestone(create_data: CreateMilestoneSchema) -> MilestoneResponseSchema:
         """Tạo milestone mới."""
         collection = PregnancyMilestoneService.get_collection()
         
@@ -41,18 +41,18 @@ class PregnancyMilestoneService:
             "updated_at": datetime.now(timezone.utc),
         }
         
-        result = collection.insert_one(milestone_doc)
+        result = await collection.insert_one(milestone_doc)
         milestone_doc["_id"] = result.inserted_id
         
         return PregnancyMilestoneService._doc_to_response(milestone_doc)
     
     @staticmethod
-    def get_milestone(milestone_id: str) -> MilestoneResponseSchema | None:
+    async def get_milestone(milestone_id: str) -> MilestoneResponseSchema | None:
         """Lấy 1 milestone theo ID."""
         collection = PregnancyMilestoneService.get_collection()
         
         try:
-            doc = collection.find_one({"_id": ObjectId(milestone_id)})
+            doc = await collection.find_one({"_id": ObjectId(milestone_id)})
             if doc:
                 return PregnancyMilestoneService._doc_to_response(doc)
         except:
@@ -61,7 +61,7 @@ class PregnancyMilestoneService:
         return None
     
     @staticmethod
-    def get_all_milestones(
+    async def get_all_milestones(
         week: int | None = None,
         status: str | None = None,
         category: str | None = None,
@@ -79,14 +79,9 @@ class PregnancyMilestoneService:
         if category is not None:
             filter_query["category"] = category
         
-        total = collection.count_documents(filter_query)
+        total = await collection.count_documents(filter_query)
         
-        docs = list(
-            collection.find(filter_query)
-            .sort("week", 1)
-            .skip(skip)
-            .limit(limit)
-        )
+        docs = await collection.find(filter_query).sort("week", 1).skip(skip).limit(limit).to_list(limit)
         
         milestones = [
             PregnancyMilestoneService._doc_to_response(doc) for doc in docs
@@ -95,7 +90,7 @@ class PregnancyMilestoneService:
         return milestones, total
     
     @staticmethod
-    def update_milestone(
+    async def update_milestone(
         milestone_id: str,
         update_data: UpdateMilestoneSchema,
     ) -> MilestoneResponseSchema | None:
@@ -132,7 +127,7 @@ class PregnancyMilestoneService:
             
             update_dict["updated_at"] = datetime.now(timezone.utc)
             
-            result = collection.find_one_and_update(
+            result = await collection.find_one_and_update(
                 {"_id": ObjectId(milestone_id)},
                 {"$set": update_dict},
                 return_document=True,
@@ -146,18 +141,18 @@ class PregnancyMilestoneService:
         return None
     
     @staticmethod
-    def delete_milestone(milestone_id: str) -> bool:
+    async def delete_milestone(milestone_id: str) -> bool:
         """Xoá milestone."""
         collection = PregnancyMilestoneService.get_collection()
         
         try:
-            result = collection.delete_one({"_id": ObjectId(milestone_id)})
+            result = await collection.delete_one({"_id": ObjectId(milestone_id)})
             return result.deleted_count > 0
         except:
             return False
     
     @staticmethod
-    def add_task_to_milestone(
+    async def add_task_to_milestone(
         milestone_id: str,
         task: TaskSchema,
     ) -> MilestoneResponseSchema | None:
@@ -172,7 +167,7 @@ class PregnancyMilestoneService:
                 "due_date": task.due_date,
             }
             
-            result = collection.find_one_and_update(
+            result = await collection.find_one_and_update(
                 {"_id": ObjectId(milestone_id)},
                 {
                     "$push": {"tasks": task_doc},
@@ -189,17 +184,14 @@ class PregnancyMilestoneService:
         return None
     
     @staticmethod
-    def get_milestones_by_week_range(
+    async def get_milestones_by_week_range(
         start_week: int,
         end_week: int,
     ) -> list[MilestoneResponseSchema]:
         """Lấy milestones trong khoảng tuần."""
         collection = PregnancyMilestoneService.get_collection()
         
-        docs = list(
-            collection.find({"week": {"$gte": start_week, "$lte": end_week}})
-            .sort("week", 1)
-        )
+        docs = await collection.find({"week": {"$gte": start_week, "$lte": end_week}}).sort("week", 1).to_list(None)
         
         return [
             PregnancyMilestoneService._doc_to_response(doc) for doc in docs
