@@ -91,7 +91,17 @@ export const CalendarView: React.FC<{ onNavigateToShopping?: () => void }> = ({ 
 
   useEffect(() => {
     fetchMilestones();
-  }, [fetchMilestones]);
+  }, []);
+
+  // Auto-enable mock data if no real data after 2 seconds
+  useEffect(() => {
+    if (!loading && milestones.length === 0 && error && !useMockData) {
+      const timer = setTimeout(() => {
+        setUseMockData(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, milestones, error, useMockData]);
 
   // Show mock data if API is not available
   const displayMilestones = milestones.length > 0 ? milestones : (useMockData ? MOCK_MILESTONES : []);
@@ -128,7 +138,9 @@ export const CalendarView: React.FC<{ onNavigateToShopping?: () => void }> = ({ 
         <p className="subtitle">Theo dõi các mốc quan trọng và nhiệm vụ cần làm trong thai kỳ</p>
       </div>
 
-      {loading && <div className="loading">Đang tải dữ liệu...</div>}
+      {loading && milestones.length === 0 && !useMockData && (
+        <div className="loading">⏳ Đang tải dữ liệu từ server...</div>
+      )}
 
       {error && !useMockData && (
         <div className="error-box">
