@@ -84,10 +84,25 @@ const MOCK_MILESTONES: Milestone[] = [
 ];
 
 export const CalendarView: React.FC<{ onNavigateToShopping?: () => void }> = ({ onNavigateToShopping }) => {
-  const { milestones, loading, error, fetchMilestones } = useMilestones();
+  const { milestones: apiMilestones, loading, error, fetchMilestones } = useMilestones();
+  const [localMilestones, setLocalMilestones] = useState<Milestone[]>(MOCK_MILESTONES);
   const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [useMockData, setUseMockData] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [useMockData, setUseMockData] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  
+  // Form state for adding/editing
+  const [formData, setFormData] = useState({
+    week: 0,
+    title: '',
+    category: 'checkup' as const,
+    due_date: '',
+    description: '',
+    notes: '',
+    status: 'pending' as const,
+    priority: 'medium' as const,
+  });
 
   useEffect(() => {
     fetchMilestones();
@@ -95,20 +110,100 @@ export const CalendarView: React.FC<{ onNavigateToShopping?: () => void }> = ({ 
 
   // Auto-enable mock data if no real data after 2 seconds
   useEffect(() => {
-    if (!loading && milestones.length === 0 && error && !useMockData) {
-      const timer = setTimeout(() => {
-        setUseMockData(true);
-      }, 1500);
-      return () => clearTimeout(timer);
+    if (!loading && apiMilestones.length === 0 && error && useMockData) {
+      // Keep mock data enabled
     }
-  }, [loading, milestones, error, useMockData]);
+  }, [loading, apiMilestones, error]);
 
   // Show mock data if API is not available
-  const displayMilestones = milestones.length > 0 ? milestones : (useMockData ? MOCK_MILESTONES : []);
+  const displayMilestones = apiMilestones.length > 0 ? apiMilestones : localMilestones;
 
   const handleSelectMilestone = (milestone: Milestone) => {
     setSelectedMilestone(milestone);
+    setEditingId(null);
     setIsModalOpen(true);
+  };
+
+  const handleEditMilestone = (milestone: Milestone) => {
+    setFormData({
+      week: milestone.week,
+      title: milestone.title,
+      category: milestone.category,
+      due_date: milestone.due_date,
+      description: milestone.description,
+      notes: milestone.notes,
+      status: milestone.status,
+      priority: milestone.priority,
+    });
+    setEditingId(milestone.id);
+    setIsFormOpen(true);
+  };
+
+  const handleAddMilestone = () => {
+    setFormData({
+      week: 0,
+      title: '',
+      category: 'checkup',
+      due_date: '',
+      description: '',
+      notes: '',
+      status: 'pending',
+      priority: 'medium',
+    });
+    setEditingId(null);
+    setIsFormOpen(true);
+  };
+
+  const handleSaveMilestone = () => {
+    if (!formData.title || formData.week <= 0) {
+      alert('Vui lòng nhập tiêu đề và tuần thai');
+      return;
+    }
+
+    if (editingId) {
+      // Update existing
+      setLocalMilestones((prev) =>
+        prev.map((m) =>
+          m.id === editingId
+            ? {
+                ...m,
+                ...formData,
+                updated_at: new Date().toISOString(),
+              }
+            : m
+        )
+      );
+    } else {
+      // Add new
+      const newMilestone: Milestone = {
+        id: Date.now().toString(),
+        ...formData,
+        tasks: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      setLocalMilestones((prev) => [...prev, newMilestone]);
+    }
+
+    setIsFormOpen(false);
+    setFormData({
+      week: 0,
+      title: '',
+      category: 'checkup',
+      due_date: '',
+      description: '',
+      notes: '',
+      status: 'pending',
+      priority: 'medium',
+    });
+  };
+
+  const handleDeleteMilestone = (id: string) => {
+    if (confirm('Bạn chắc chắn muốn xoá sự kiện này không?')) {
+      setLocalMilestones((prev) => prev.filter((m) => m.id !== id));
+      setIsModalOpen(false);
+      setSelectedMilestone(null);
+    }
   };
 
   const categoryEmoji = (cat: string) => {
@@ -136,9 +231,12 @@ export const CalendarView: React.FC<{ onNavigateToShopping?: () => void }> = ({ 
       <div className="calendar-header">
         <h1>📅 Lịch Thai Kỳ - Hướng Dẫn Thai Kỳ</h1>
         <p className="subtitle">Theo dõi các mốc quan trọng và nhiệm vụ cần làm trong thai kỳ</p>
+        <button className="btn-add-milestone" onClick={handleAddMilestone}>
+          ➕ Thêm Sự Kiện
+        </button>
       </div>
 
-      {loading && milestones.length === 0 && !useMockData && (
+      {loading && apiMilestones.length === 0 && !useMockData && (
         <div className="loading">⏳ Đang tải dữ liệu từ server...</div>
       )}
 
@@ -270,7 +368,122 @@ export const CalendarView: React.FC<{ onNavigateToShopping?: () => void }> = ({ 
             </div>
 
             <div className="modal-footer">
+              <button className="btn-delete" onClick={() => handleDeleteMilestone(selectedMilestone.id)}>🗑️ Xoá</button>
+              <button className="btn-edit" onClick={() => handleEditMilestone(selectedMilestone)}>✏️ Sửa</button>
               <button className="btn-close" onClick={() => setIsModalOpen(false)}>Đóng</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Form Modal */}
+      {isFormOpen && (
+        <div className="modal-overlay" onClick={() => setIsFormOpen(false)}>
+          <div className="modal form-modal" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setIsFormOpen(false)}>✕</button>
+            
+            <div className="modal-header">
+              <h2>{editingId ? '✏️ Sửa Sự Kiện' : '➕ Thêm Sự Kiện Mới'}</h2>
+            </div>
+
+            <div className="modal-content">
+              <div className="form-group">
+                <label>Tiêu đề *</label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Ví dụ: Kiểm tra thai nhi"
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Tuần thai *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="42"
+                    value={formData.week}
+                    onChange={(e) => setFormData({ ...formData, week: parseInt(e.target.value) })}
+                    placeholder="1-42"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Ưu tiên</label>
+                  <select
+                    value={formData.priority}
+                    onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+                  >
+                    <option value="low">🟢 Thấp</option>
+                    <option value="medium">🟡 Bình thường</option>
+                    <option value="high">🔴 Quan trọng</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Loại</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
+                  >
+                    <option value="checkup">🏥 Kiểm tra</option>
+                    <option value="shopping">🛍️ Mua sắm</option>
+                    <option value="preparation">🎁 Chuẩn bị</option>
+                    <option value="booking">📅 Đặt lịch</option>
+                    <option value="other">📝 Khác</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Trạng thái</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                  >
+                    <option value="pending">⏳ Chưa làm</option>
+                    <option value="in_progress">⚙️ Đang tiến hành</option>
+                    <option value="completed">✅ Đã hoàn thành</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Ngày dự kiến</label>
+                <input
+                  type="date"
+                  value={formData.due_date}
+                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Mô tả</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Mô tả chi tiết về sự kiện"
+                  rows={3}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Ghi chú</label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="Ghi chú thêm hoặc hướng dẫn"
+                  rows={2}
+                />
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={() => setIsFormOpen(false)}>Huỷ</button>
+              <button className="btn-save" onClick={handleSaveMilestone}>💾 Lưu</button>
             </div>
           </div>
         </div>

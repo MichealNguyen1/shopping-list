@@ -23,10 +23,28 @@
 }
 
 .calendar-header .subtitle {
-  margin: 0;
+  margin: 0 0 16px 0;
   font-size: 14px;
   opacity: 0.95;
   font-weight: 400;
+}
+
+.btn-add-milestone {
+  display: inline-block;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+  border: 2px solid white;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-add-milestone:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
 }
 
 /* Loading & Error States */
@@ -403,12 +421,15 @@
   display: flex;
   gap: 12px;
   justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
-.btn-close {
+.btn-close,
+.btn-delete,
+.btn-edit,
+.btn-save,
+.btn-cancel {
   padding: 10px 20px;
-  background: #ee4d2d;
-  color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -417,8 +438,54 @@
   transition: all 0.2s;
 }
 
+.btn-close {
+  background: #ee4d2d;
+  color: white;
+}
+
 .btn-close:hover {
   background: #d83a1a;
+  transform: translateY(-2px);
+}
+
+.btn-edit {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+.btn-delete {
+  background: #dc2626;
+  color: white;
+  margin-right: auto;
+}
+
+.btn-delete:hover {
+  background: #b91c1c;
+  transform: translateY(-2px);
+}
+
+.btn-save {
+  background: #16a34a;
+  color: white;
+}
+
+.btn-save:hover {
+  background: #15803d;
+  transform: translateY(-2px);
+}
+
+.btn-cancel {
+  background: #9ca3af;
+  color: white;
+}
+
+.btn-cancel:hover {
+  background: #6b7280;
   transform: translateY(-2px);
 }
 
@@ -439,4 +506,71 @@
 .btn-back:hover {
   background: #d83a1a;
   transform: translateY(-2px);
+}
+
+/* Form Styles */
+.form-modal .modal-header {
+  background: linear-gradient(135deg, #ee4d2d 0%, #f08080 100%);
+}
+
+.form-modal .modal-header h2 {
+  color: white;
+}
+
+.form-modal .modal-content {
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #555;
+  font-size: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #ee4d2d;
+  box-shadow: 0 0 0 3px rgba(238, 77, 45, 0.1);
+}
+
+.form-group input[type="date"] {
+  cursor: pointer;
+}
+
+.form-group textarea {
+  resize: vertical;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
